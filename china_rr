@@ -1,0 +1,36 @@
+#!/usr/bin/env python
+
+import glob
+import subprocess
+
+#Execute within directory containing SAC files and associated SACPZ files.
+#This removes the instrument response from the seismograms and outputs
+#SAC files with a .filtered extension.
+#Samuel Haugland 1/11/16
+
+resp_list = []
+
+for filename in glob.glob('*.SAC'):
+    a = filename.split('.')
+    pz_file = glob.glob('SAC_PZs_'+a[6]+'_'+a[7]+'_'+a[9]+'*')[0]
+    resp_list.append((filename,pz_file))
+
+p = subprocess.Popen(['sac'],
+                     stdout = subprocess.PIPE,
+                     stdin  = subprocess.PIPE,
+                     stderr = subprocess.STDOUT)
+s = "echo on\n"
+
+for index in resp_list:
+    s += '''
+         setbb pzfile {}
+         read {}
+         rtr
+         taper
+         trans from polezero S %pzfile to none freq 0.020 0.045 20 40
+         mul 1.0e9
+         write {}.filtered
+         '''.format(index[1],index[0],index[0])
+s += "quit\n"
+out = p.communicate(s)
+print out[0]

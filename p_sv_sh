@@ -1,0 +1,119 @@
+#!/home/samhaug/anaconda2/bin/python
+
+import numpy as pyl
+from sys import stdout
+import obspy
+
+Np = 9; Nq = 16
+SQ2 = pyl.sqrt(2.)
+
+def cmt2mxyz(file):
+	li = open(file,'r').readlines()
+	M = []
+	M.append([])
+	M[0].append(float(li[ 7].split(':')[1]))
+	M[0].append(float(li[10].split(':')[1]))
+	M[0].append(float(li[11].split(':')[1]))
+	M.append([])
+	M[1].append(float(li[10].split(':')[1]))
+	M[1].append(float(li[ 8].split(':')[1]))
+	M[1].append(float(li[12].split(':')[1]))
+	M.append([])
+	M[2].append(float(li[11].split(':')[1]))
+	M[2].append(float(li[12].split(':')[1]))
+	M[2].append(float(li[ 9].split(':')[1]))
+
+	N = []
+	N.append([])
+	N[-1].append( M[1][1])
+	N[-1].append(-M[1][2])
+	N[-1].append( M[0][1])
+	N.append([])
+	N[-1].append(-M[1][2])
+	N[-1].append( M[2][2])
+	N[-1].append(-M[0][2])
+	N.append([])
+	N[-1].append( M[0][1])
+	N[-1].append(-M[0][2])
+	N[-1].append( M[0][0])
+	return N
+
+Mxyz = cmt2mxyz('CMTSOLUTION')
+print Mxyz
+
+MP = cmt2mxyz('CMTSOLUTION')
+MSV = cmt2mxyz('CMTSOLUTION')
+MSH = cmt2mxyz('CMTSOLUTION')
+
+neg, pos, whi = '-', '#', ' '
+
+rpP, rpSV, rpSH = [],[], []
+for jq in xrange(-Nq,Nq+1):
+	rpP.append([])
+	rpSV.append([])
+	rpSH.append([])
+	for jp in xrange(-Np,Np+1):
+		p  = float(jp)/float(Np)
+		q  = float(jq)/float(Nq)
+		r  = pyl.sqrt(p**2+q**2)
+		if r < 1.:
+			f  = pyl.arctan2(q,p)
+			i  = 2.*pyl.arcsin(r/SQ2)
+			si,ci = pyl.sin(i),pyl.cos(i)
+			sf,cf = pyl.sin(f),pyl.cos(f)
+			g = [si*cf, si*sf,  ci]
+			v = [ci*cf, ci*sf, -si]
+			h = [-sf, cf, 0.]
+			Ap, Asv, Ash = 0., 0., 0.
+
+			for k1 in xrange(3):
+				for k2 in xrange(3):
+					Ap  += Mxyz[k1][k2]*g[k1]*g[k2]
+					MP[k1][k2] = Mxyz[k1][k2]*g[k1]*g[k2]
+
+					Asv += Mxyz[k1][k2]*g[k1]*v[k2]
+					MSV[k1][k2] = Mxyz[k1][k2]*g[k1]*v[k2]
+
+					Ash += Mxyz[k1][k2]*g[k1]*h[k2]
+					MSH[k1][k2] = Mxyz[k1][k2]*g[k1]*h[k2]
+
+			v1,v2, v3  = neg, neg, neg
+			if Ap  > 0.:
+				v1   = pos
+			if Asv > 0.:
+				v2  = pos
+			if Ash > 0.:
+				v3  = pos
+			rpP[-1].append(v1)
+			rpSV[-1].append(v2)
+			rpSH[-1].append(v3)
+		else:
+			rpP[-1].append(whi)
+			rpSV[-1].append(whi)
+			rpSH[-1].append(whi)
+
+#print MP
+obspy.imaging.beachball.beachball([MP[2][2],MP[0][0],MP[1][1],MP[0][2],MP[1][2],MP[0][1]])
+print MP
+#print ' '
+#print MSV
+#print ' '
+#print MSH
+'''
+for jp in xrange(2*Np+1):
+	for jq in xrange(2*Nq+1):
+		stdout.write(rpP[jq][2*Np-jp])
+	stdout.write('\n')
+
+print ' '
+for jp in xrange(2*Np+1):
+	for jq in xrange(2*Nq+1):
+		stdout.write(rpSV[jq][2*Np-jp])
+	stdout.write('\n')
+
+print ' '
+for jp in xrange(2*Np+1):
+	for jq in xrange(2*Nq+1):
+		stdout.write(rpSH[jq][2*Np-jp])
+	stdout.write('\n')
+'''

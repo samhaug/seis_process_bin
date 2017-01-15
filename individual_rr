@@ -1,0 +1,32 @@
+#!/usr/bin/env python
+
+import glob
+import subprocess
+from sys import argv
+
+
+'''
+remove response from individual sac file
+
+individual_rr SACFILE PZFILE OUTFILE
+'''
+
+p = subprocess.Popen(['sac'],
+                     stdout = subprocess.PIPE,
+                     stdin  = subprocess.PIPE,
+                     stderr = subprocess.STDOUT)
+s = "echo on\n"
+
+s += '''
+         setbb pzfile {}
+         read {}
+         rtr
+         taper
+         trans from polezero S %pzfile to none freq 0.050 0.1 20 40
+         mul 1.0e9
+         write {}.filtered
+         '''.format(argv[2],argv[1],argv[3])
+s += "quit\n"
+
+out = p.communicate(s)
+print out[0]

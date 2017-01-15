@@ -1,0 +1,126 @@
+#!/usr/bin/env python
+
+import obspy
+import h5py
+import glob
+import pandas
+import os
+
+def main():
+    st_n = obspy.core.Stream()
+    st_e = obspy.core.Stream()
+    st_z = obspy.core.Stream()
+
+    info_list, CMT_list, inparam_list, station_list, source_list, date = open_files()
+
+    seis_list = glob.glob('./SEISMOGRAMS/*.dat')
+
+    stat_name_list = []
+    for ii in station_list:
+        stat_name_list.append(ii[0])
+    seis_len = float(inparam_list[16].split()[1])
+    start = date
+    end = start+seis_len
+    npts = float(info_list[2].strip().split()[0])
+    sampling_rate = npts/seis_len
+    delta = 1./sampling_rate
+
+    evla = CMT_list[0]
+    evlo = CMT_list[1]
+    evdp = CMT_list[2]
+    #evdp = float(info_list[8].strip().split()[0])
+    #evla = float(source_list[10][1])
+    #evlo = float(source_list[13][1])
+
+    for ii in seis_list:
+        tr = obspy.core.Trace()
+        network = ii.split('/')[-1].split('_')[1]
+        station = ii.split('/')[-1].split('_')[0]
+        if station == 'STAT' or station == 'STATneg':
+            if len(ii.split('/')[-1].split('_')) == 2:
+                station = ii.split('/')[-1].split('_')[0]+'_'+\
+                          ii.split('/')[-1].split('_')[1]
+            else:
+                station = ii.split('/')[-1].split('_')[0]+'_'+\
+                          ii.split('/')[-1].split('_')[1]
+                         # ii.split('/')[-1].split('_')[2]
+        channel = ii.split('/')[-1].split('_')[-1][0]
+        data = pandas.read_csv(ii,
+                        sep=r"\s*",engine='python')
+        data = data.as_matrix()[:,1]
+        tr.stats.network = network
+        tr.stats.station = station
+        tr.stats.channel = channel
+        tr.stats.starttime = start
+        tr.stats.sampling_rate = sampling_rate
+        tr.stats.delta = delta
+        tr.stats.npts = npts
+        tr.data = data
+        tr.stats.sac = {}
+
+        tr.stats.sac['evdp'] = evdp
+        tr.stats.sac['evla'] = evla
+        tr.stats.sac['evlo'] = evlo
+        tr.stats.sac['o'] = 0
+
+        index = stat_name_list.index(station)
+        if len(station_list[index]) == 6:
+            tr.stats.sac['stla'] = float(station_list[index][2])
+            tr.stats.sac['stlo'] = float(station_list[index][3])
+            tr.stats.sac['gcarc'] = 0
+            tr.stats.sac['az'] = 0
+            tr.stats.sac['baz'] = 0
+        else:
+            tr.stats.sac['stla'] = float(station_list[index][2])
+            tr.stats.sac['stlo'] = float(station_list[index][3])
+            tr.stats.sac['gcarc'] = float(station_list[index][5])
+            tr.stats.sac['az'] = float(station_list[index][6])
+            tr.stats.sac['baz'] = float(station_list[index][7])
+
+        if channel == 'E':
+            st_e.append(tr)
+        if channel == 'N':
+            st_n.append(tr)
+        if channel == 'Z':
+            st_z.append(tr)
+    print('Write N')
+    st_n.write('st_N.pk',format='PICKLE')
+    print('Write E')
+    st_e.write('st_E.pk',format='PICKLE')
+    print('Write Z')
+    st_z.write('st_Z.pk',format='PICKLE')
+
+def open_files():
+    print('Open files')
+    info_file = open('./simulation.info','r')
+    info_list = info_file.read().strip().split('\n')
+
+#    try:
+    CMT_file = open('./CMTSOLUTION','r')
+    CMT_list = CMT_file.read().strip().split('\n')
+    evla = float(CMT_list[4].strip().split()[1])
+    evlo = float(CMT_list[5].strip().split()[1])
+    evdp = float(CMT_list[6].strip().split()[1])
+    f = CMT_list[0].split()
+    CMT_list = [evla, evlo, evdp]
+
+    date = obspy.core.utcdatetime.UTCDateTime(int(f[1]),int(f[2]),int(f[3]),
+                                          int(f[4]),int(f[5]),
+                                          int(float(f[6])),5000)
+
+#    except IOError:
+#        CMT_list = [90,0,0]
+
+    inparam_basic_file = open('./inparam_basic')
+    inparam_list = inparam_basic_file.read().strip().split('\n')
+
+    station_file = open('./STATIONS','r')
+    station_list = [line.strip().split() for line in station_file]
+
+    source_file = open('./inparam_source','r')
+    source_list = [line.strip().split() for line in source_file]
+
+    return info_list, CMT_list, inparam_list, station_list, source_list, date
+
+#info_list,CMT_list,inparam_list,station_list,source_list = open_files()
+main()
