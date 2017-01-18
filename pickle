@@ -84,11 +84,11 @@ def main():
         if channel == 'Z':
             st_z.append(tr)
     print('Write N')
-    st_n.write('st_N.h5','H5')
+    st_n.write('st_N.pk',format='PICKLE')
     print('Write E')
-    st_e.write('st_E.h5','H5')
+    st_e.write('st_E.pk',format='PICKLE')
     print('Write Z')
-    st_z.write('st_Z.h5','H5')
+    st_z.write('st_Z.pk',format='PICKLE')
 
 def open_files():
     print('Open files')
