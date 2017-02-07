@@ -1,0 +1,19 @@
+#!/home/samhaug/anaconda2/bin/python
+
+import obspy
+import seispy
+
+ste = obspy.read('Syndat_SAC/*BHE*')
+stn = obspy.read('Syndat_SAC/*BHN*')
+stz = obspy.read('Syndat_SAC/*BHZ*')
+l,q,t = seispy.data.rotate_phase(stz,stn,ste,['S'])
+
+ste.write('st_E.pk',format='PICKLE')
+stz.write('st_Z.pk',format='PICKLE')
+stn.write('st_N.pk',format='PICKLE')
+
+print('writing')
+l.write('st_L.pk',format='PICKLE')
+q.write('st_Q.pk',format='PICKLE')
+t.write('st_T.pk',format='PICKLE')
+
