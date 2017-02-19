@@ -7,6 +7,7 @@ from matplotlib import pyplot as plt
 from sys import argv
 from obspy.taup import TauPyModel
 model = TauPyModel(model="iasp91")
+from subprocess import call
 
 '''
 Just for fun. To help you see the forest through the trees.
@@ -15,10 +16,7 @@ argv[1] = pickled stream object
 '''
 
 def get_color(string):
-    trunk_list = ['cornsilk',
-                  'blanchedalmond',
-                  'bisque',
-                  'navajowhite',
+    trunk_list = [
                   'wheat',
                   'burlywood',
                   'tan',
@@ -46,7 +44,7 @@ def get_color(string):
                    'greenyellow',
                    'darkgreen',
                    'green',
-                   'forsetgreen',
+                   'forestgreen',
                    'lime',
                    'limegreen',
                    'chartreuse',
@@ -63,15 +61,22 @@ def get_color(string):
 
 
 
-st = obspy.read('argv[1]')
+st = obspy.read('/home/samhaug/work1/SP_brazil_data/2007_full.pk')
+st.differentiate()
 st.normalize()
+st = seispy.convert.set_gcarc(st)
 
-fig,ax = plt.subplots(figsize=(8,7))
+st.interpolate(1)
+
+fig,ax = plt.subplots(figsize=(6,9))
 ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
 ax.spines['left'].set_visible(False)
 ax.yaxis.set_ticklabels([])
 ax.yaxis.set_ticks([])
+ax.xaxis.set_ticklabels([])
+ax.xaxis.set_ticks([])
+ax.set_ylim(200,1600)
 
 
 for tr in st:
@@ -80,12 +85,17 @@ for tr in st:
                                     phase_list = ['P','Pdiff'])
 
     t = arrival[0].time
-    trunk = seispy.data.phase_window(tr.stats.starttime,tr.stats.starttime+t)
-    branch = seispy.data.phase_window(tr.stats.starttime+t,tr.stats.endtime)
+    o = tr.stats.sac['o']
+    trunk = seispy.data.phase_window(tr,['P'],window=(-1*t,-20))
+    top = np.random.randint(-20,200)
+    branch = seispy.data.phase_window(tr,['P'],window=(-20,1400+top))
     t_trunk = np.linspace(0,t,num=len(trunk.data))
-    t_branch = np.linspace(t,tr.stats.endtime-tr.stats.starttime,num=len(branch.data))
-    ax.plot(trunk.data+tr.stats.gcarc,t_trunk,color=get_color('trunk'))
-    ax.plot(branch.data+tr.stats.gcarc,t_branch,color=get_color('branch'))
+    t_branch = np.linspace(t,1400+top,num=len(branch.data))
+    ax.plot(trunk.data+tr.stats.sac['gcarc'],t_trunk,
+            color=get_color('trunk'),alpha=0.5,lw=0.8)
+    ax.plot(branch.data+tr.stats.sac['gcarc'],t_branch,
+            color=get_color('branch'),alpha=0.5,lw=0.8)
 
-plt.show()
 
+plt.savefig('./seismic_forest.pdf')
+call('evince ./seismic_forest.pdf',shell=True)
