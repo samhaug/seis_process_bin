@@ -6,14 +6,18 @@ import seispy
 ste = obspy.read('Syndat_SAC/*BHE*')
 stn = obspy.read('Syndat_SAC/*BHN*')
 stz = obspy.read('Syndat_SAC/*BHZ*')
-l,q,t = seispy.data.rotate_phase(stz,stn,ste,['S'])
+ste = seispy.convert.mineos_convert(ste)
+stn = seispy.convert.mineos_convert(stn)
+stz = seispy.convert.mineos_convert(stz)
 
-ste.write('st_E.pk',format='PICKLE')
-stz.write('st_Z.pk',format='PICKLE')
-stn.write('st_N.pk',format='PICKLE')
+l,q,t = seispy.data.rotate_phase(stz,stn,ste,['ScS'])
+
+#ste.write('st_E.pk',format='PICKLE')
+#stz.write('st_Z.pk',format='PICKLE')
+#stn.write('st_N.pk',format='PICKLE')
 
 print('writing')
-l.write('st_L.pk',format='PICKLE')
-q.write('st_Q.pk',format='PICKLE')
+#l.write('st_L.pk',format='PICKLE')
+#q.write('st_Q.pk',format='PICKLE')
 t.write('st_T.pk',format='PICKLE')
 

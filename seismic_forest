@@ -1,0 +1,91 @@
+#!/home/samhaug/anaconda2/bin/python
+
+import numpy as np
+import seispy
+import obspy
+from matplotlib import pyplot as plt
+from sys import argv
+from obspy.taup import TauPyModel
+model = TauPyModel(model="iasp91")
+
+'''
+Just for fun. To help you see the forest through the trees.
+
+argv[1] = pickled stream object
+'''
+
+def get_color(string):
+    trunk_list = ['cornsilk',
+                  'blanchedalmond',
+                  'bisque',
+                  'navajowhite',
+                  'wheat',
+                  'burlywood',
+                  'tan',
+                  'rosybrown',
+                  'sandybrown',
+                  'goldenrod',
+                  'peru',
+                  'chocolate',
+                  'saddlebrown',
+                  'sienna',
+                  'brown',
+                  'maroon']
+    branch_list = ['olivedrab',
+                   'darkolivegreen',
+                   'olive',
+                   'seagreen',
+                   'lightseagreen',
+                   'mediumseagreen',
+                   'darkseagreen',
+                   'palegreen',
+                   'lightgreen',
+                   'mediumspringgreen',
+                   'springgreen',
+                   'yellowgreen',
+                   'greenyellow',
+                   'darkgreen',
+                   'green',
+                   'forsetgreen',
+                   'lime',
+                   'limegreen',
+                   'chartreuse',
+                   'lawngreen']
+
+    if string == 'branch':
+        i = np.random.randint(0,len(branch_list))
+        color = branch_list[i]
+        return color
+    if string == 'trunk':
+        i = np.random.randint(0,len(trunk_list))
+        color = trunk_list[i]
+        return color
+
+
+
+st = obspy.read('argv[1]')
+st.normalize()
+
+fig,ax = plt.subplots(figsize=(8,7))
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.spines['left'].set_visible(False)
+ax.yaxis.set_ticklabels([])
+ax.yaxis.set_ticks([])
+
+
+for tr in st:
+    arrival = model.get_travel_times(source_depth_in_km=tr.stats.sac['evdp'],
+                                    distance_in_degree=tr.stats.sac['gcarc'],
+                                    phase_list = ['P','Pdiff'])
+
+    t = arrival[0].time
+    trunk = seispy.data.phase_window(tr.stats.starttime,tr.stats.starttime+t)
+    branch = seispy.data.phase_window(tr.stats.starttime+t,tr.stats.endtime)
+    t_trunk = np.linspace(0,t,num=len(trunk.data))
+    t_branch = np.linspace(t,tr.stats.endtime-tr.stats.starttime,num=len(branch.data))
+    ax.plot(trunk.data+tr.stats.gcarc,t_trunk,color=get_color('trunk'))
+    ax.plot(branch.data+tr.stats.gcarc,t_branch,color=get_color('branch'))
+
+plt.show()
+
