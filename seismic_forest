@@ -62,7 +62,7 @@ def get_color(string):
 
 
 st = obspy.read('/home/samhaug/work1/SP_brazil_data/2007_full.pk')
-st.differentiate()
+#st.differentiate()
 st.normalize()
 st = seispy.convert.set_gcarc(st)
 
@@ -87,8 +87,8 @@ for tr in st:
     t = arrival[0].time
     o = tr.stats.sac['o']
     trunk = seispy.data.phase_window(tr,['P'],window=(-1*t,-20))
-    top = np.random.randint(-20,200)
-    branch = seispy.data.phase_window(tr,['P'],window=(-20,1400+top))
+    top = np.random.randint(-10,200)
+    branch = seispy.data.phase_window(tr,['P'],window=(-10,1400+top))
     t_trunk = np.linspace(0,t,num=len(trunk.data))
     t_branch = np.linspace(t,1400+top,num=len(branch.data))
     ax.plot(trunk.data+tr.stats.sac['gcarc'],t_trunk,
