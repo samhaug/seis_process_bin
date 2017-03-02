@@ -1,0 +1,3 @@
+#!/bin/bash
+rsync -vrzah * samhaug@geo-legato.lsa.umich.edu:${PWD##*/}
+#rsync -avz * samhaug@earth-nx.earth.lsa.umich.edu:scatter_cross/

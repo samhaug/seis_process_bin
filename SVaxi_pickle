@@ -1,0 +1,13 @@
+#!/home/samhaug/anaconda2/bin/python
+
+import obspy
+
+st = obspy.read('*R')
+
+for tr in st:
+    tr.stats.sac['o'] = -204
+
+st.normalize()
+
+st.write('st.pk',format='PICKLE')
+
