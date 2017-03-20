@@ -1,6 +1,8 @@
 #!/home/samhaug/anaconda2/bin/python
 
 import obspy
+import seispy
+
 
 st = obspy.read('*R')
 
@@ -8,6 +10,7 @@ for tr in st:
     tr.stats.sac['o'] = -204
 
 st.normalize()
+st = seispy.filter.gimp_filter(st)
 
 st.write('st.pk',format='PICKLE')
 

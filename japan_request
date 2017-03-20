@@ -1,0 +1,40 @@
+#!/home/samhaug/anaconda2/bin/python
+
+import obspy
+from sys import argv
+
+
+def main():
+    try:
+        st = obspy.read(argv[1])
+    except IndexError:
+        print('include obspy readable')
+
+    stat_list = ['ABU','ADM','AMM','AOG','ASI','CHS','FUJ','FUK','GJM','HID',
+                 'HJO','HKW','HRO','HSS','IGK','IMG','INN','ISI','IWT','IYG',
+                 'IZH','JIZ','KFU','KGM','KIS','KMT','KMU','KNM','KNP','KNY',
+                 'KSK','KSN','KSR','KYK','KZK','KZS','MMA','NAA','NKG','NMR',
+                 'NOK','NOP','NRW','NSK','OHS','OKW','ONS','OOW','OSW','SAG',
+                 'SBR','SBT','SGN','SHR','SIB','SMZ','SRN','STM','TAS','TGA',
+                 'TGW','TKA','TKD','TKO','TMC','TMR','TNK','TNR','TSA','TSK',
+                 'TTO','TYM','TYS','UMJ','URH','WJM','WTR','YAS','YMZ','YNG',
+                 'YNG','YSI','YTY','YZK','ZMM']
+    o = st[0].stats.sac['o']
+    st[0].stats.starttime += o
+    for ii in stat_list[0:40]:
+        print_line(st,ii)
+
+def japan_format(dt):
+    h = "{0:0=2d}".format(dt.hour)
+    m = "{0:0=2d}".format(dt.minute)
+    s = "{0:0=2d}".format(dt.second)
+    mon = "{0:0=2d}".format(dt.month)
+    day = "{0:0=2d}".format(dt.day)
+    return '{}/{}/{},{}:{}:{}'.format(dt.year,mon,day,h,m,s)
+
+def print_line(st,stat):
+    print 'get '+stat+' BHZ',japan_format(st[0].stats.starttime),japan_format(st[0].stats.starttime+4000)
+    print 'get '+stat+' BHN',japan_format(st[0].stats.starttime),japan_format(st[0].stats.starttime+4000)
+    print 'get '+stat+' BHE',japan_format(st[0].stats.starttime),japan_format(st[0].stats.starttime+4000)
+
+main()
