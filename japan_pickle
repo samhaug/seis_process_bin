@@ -1,0 +1,46 @@
+#!/home/samhaug/anaconda2/bin/python
+
+import obspy
+import seispy
+from sys import argv
+
+def main():
+    ref_st = obspy.read(argv[1])
+    stn = obspy.read('*BHN')
+    ste = obspy.read('*BHE')
+    stz = obspy.read('*BHZ')
+
+    for idx, ii in enumerate(stn):
+        stn[idx].stats.sac['evla'] = ref_st[0].stats.sac['evla']
+        stn[idx].stats.sac['evlo'] = ref_st[0].stats.sac['evlo']
+        ste[idx].stats.sac['evla'] = ref_st[0].stats.sac['evla']
+        ste[idx].stats.sac['evlo'] = ref_st[0].stats.sac['evlo']
+        stz[idx].stats.sac['evla'] = ref_st[0].stats.sac['evla']
+        stz[idx].stats.sac['evlo'] = ref_st[0].stats.sac['evlo']
+        stz[idx].stats.sac['o'] = 0
+        ste[idx].stats.sac['o'] = 0
+        stn[idx].stats.sac['o'] = 0
+        stn[idx].stats.sac['evdp'] = ref_st[0].stats.sac['evdp']
+        ste[idx].stats.sac['evdp'] = ref_st[0].stats.sac['evdp']
+        stz[idx].stats.sac['evdp'] = ref_st[0].stats.sac['evdp']
+
+    stn = seispy.convert.set_gcarc(stn)
+    ste = seispy.convert.set_gcarc(ste)
+    stz = seispy.convert.set_gcarc(stz)
+
+    try:
+        l,q,t = seispy.data.rotate_phase(stz,stn,ste,['ScSScS'])
+    except:
+        for idx, ii in enumerate(stn):
+            stn[idx].stats.sac['evdp']*=1./1000
+            ste[idx].stats.sac['evdp']*=1./1000
+            stz[idx].stats.sac['evdp']*=1./1000
+        l,q,t = seispy.data.rotate_phase(stz,stn,ste,['ScSScS'])
+
+    l.write('st_L.pk',format='PICKLE')
+    q.write('st_Q.pk',format='PICKLE')
+    t.write('st_T.pk',format='PICKLE')
+    stn.write('st_N.pk',format='PICKLE')
+    ste.write('st_E.pk',format='PICKLE')
+    stz.write('st_Z.pk',format='PICKLE')
+main()

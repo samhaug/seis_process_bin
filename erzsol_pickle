@@ -1,0 +1,70 @@
+#!/home/samhaug/anaconda2/bin/python
+
+import obspy
+import numpy as np
+
+
+Tdat = np.loadtxt('Tdat')
+Zdat = np.loadtxt('Zdat')
+Rdat = np.loadtxt('Rdat')
+
+Thead = open('Thead')
+Thead = Thead.read()
+Thead = Thead.strip().split('\n')
+Zhead = open('Zhead')
+Zhead = Zhead.read()
+Zhead = Zhead.strip().split('\n')
+Rhead = open('Rhead')
+Rhead = Rhead.read()
+Rhead = Rhead.strip().split('\n')
+
+st_Z = obspy.core.Stream()
+st_R = obspy.core.Stream()
+st_T = obspy.core.Stream()
+
+for ii in range(Tdat.shape[0]):
+    trz = obspy.core.Trace()
+    trz.stats.sac = {}
+    trz.data = Zdat[ii]
+    trz.stats.sac['gcarc'] = float(Zhead[ii].strip().split()[0])/111.195
+    trz.stats.sac['az'] = float(Zhead[ii].strip().split()[1])
+    trz.stats.channel = Zhead[ii].strip().split()[2]
+    trz.stats.delta = float(Zhead[ii].strip().split()[3])
+    trz.stats.npts = int(Zhead[ii].strip().split()[4])
+    trz.stats.sac['o'] = float(Zhead[ii].strip().split()[6])
+    trz.stats.max = float(Zhead[ii].strip().split()[7])
+
+    trr = obspy.core.Trace()
+    trr.stats.sac = {}
+    trr.data = Rdat[ii]
+    trr.stats.sac['gcarc'] = float(Rhead[ii].strip().split()[0])/111.195
+    trr.stats.sac['az'] = float(Rhead[ii].strip().split()[1])
+    trr.stats.channel = Rhead[ii].strip().split()[2]
+    trr.stats.delta = float(Rhead[ii].strip().split()[3])
+    trr.stats.npts = int(Rhead[ii].strip().split()[4])
+    trr.stats.sac['o'] = float(Rhead[ii].strip().split()[6])
+    trr.stats.max = float(Rhead[ii].strip().split()[7])
+
+    trt = obspy.core.Trace()
+    trt.stats.sac = {}
+    trt.data = Tdat[ii]
+    trt.stats.sac['gcarc'] = float(Thead[ii].strip().split()[0])/111.195
+    trt.stats.sac['az'] = float(Thead[ii].strip().split()[1])
+    trt.stats.channel = Thead[ii].strip().split()[2]
+    trt.stats.delta = float(Thead[ii].strip().split()[3])
+    trt.stats.npts = int(Thead[ii].strip().split()[4])
+    trt.stats.sac['o'] = float(Thead[ii].strip().split()[6])
+    trt.stats.max = float(Thead[ii].strip().split()[7])
+
+    st_Z.append(trz)
+    st_T.append(trt)
+    st_R.append(trr)
+
+
+st_Z.write('st_Z.pk',format='PICKLE')
+st_R.write('st_R.pk',format='PICKLE')
+st_T.write('st_T.pk',format='PICKLE')
+
+
+
+
