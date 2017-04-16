@@ -6,9 +6,9 @@ from sys import argv
 
 def main():
     ref_st = obspy.read(argv[1])
-    stn = obspy.read('*BHN')
-    ste = obspy.read('*BHE')
-    stz = obspy.read('*BHZ')
+    stn = obspy.read('*BHN.filtered')
+    ste = obspy.read('*BHE.filtered')
+    stz = obspy.read('*BHZ.filtered')
 
     for idx, ii in enumerate(stn):
         stn[idx].stats.sac['evla'] = ref_st[0].stats.sac['evla']
@@ -31,6 +31,7 @@ def main():
     try:
         l,q,t = seispy.data.rotate_phase(stz,stn,ste,['ScSScS'])
     except:
+        print('WARNING: divide depth by 1000')
         for idx, ii in enumerate(stn):
             stn[idx].stats.sac['evdp']*=1./1000
             ste[idx].stats.sac['evdp']*=1./1000

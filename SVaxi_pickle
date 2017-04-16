@@ -2,15 +2,24 @@
 
 import obspy
 import seispy
+import numpy as np
 
 
-st = obspy.read('*R')
+str = obspy.read('*0.R')
+stz = obspy.read('*0.Z')
 
-for tr in st:
-    tr.stats.sac['o'] = -204
+for idx,tr in enumerate(stz):
+    stz[idx].stats.sac['o'] = -204
+    str[idx].stats.sac['o'] = -204
 
-st.normalize()
-st = seispy.filter.gimp_filter(st)
 
-st.write('st.pk',format='PICKLE')
+for idx,tr in enumerate(str):
+    p = seispy.data.phase_window(tr,phase=['S'],window=(-30,30))
+    stz[idx].data *= 1./np.abs(p.data).max()
+#stz = seispy.data.normalize_on_phase(stz,phase=['S'])
+#str = seispy.data.normalize_on_phase(str,phase=['S'])
+#st = seispy.filter.gimp_filter(st)
+
+stz.write('stz.pk',format='PICKLE')
+str.write('str.pk',format='PICKLE')
 

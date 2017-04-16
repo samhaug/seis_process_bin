@@ -1,0 +1,16 @@
+#!/home/samhaug/anaconda2/bin/python
+
+import obspy
+
+st_clean = obspy.read('st_clean.pk')
+st_raw = obspy.read('st_T.pk')
+
+a = []
+for tr in st_clean:
+    a.append(tr.stats.station)
+
+for tr in st_raw:
+    if tr.stats.station not in a:
+        st_raw.remove(tr)
+st_raw.write('st_T_raw_clean.pk',format='PICKLE')
+

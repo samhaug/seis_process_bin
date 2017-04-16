@@ -33,8 +33,8 @@ def japan_format(dt):
     return '{}/{}/{},{}:{}:{}'.format(dt.year,mon,day,h,m,s)
 
 def print_line(st,stat):
-    print 'get '+stat+' BHZ',japan_format(st[0].stats.starttime),japan_format(st[0].stats.starttime+5000)
-    print 'get '+stat+' BHN',japan_format(st[0].stats.starttime),japan_format(st[0].stats.starttime+5000)
-    print 'get '+stat+' BHE',japan_format(st[0].stats.starttime),japan_format(st[0].stats.starttime+5000)
+    print 'get '+stat+' BHZ',japan_format(st[0].stats.starttime),japan_format(st[0].stats.starttime+4500)
+    print 'get '+stat+' BHN',japan_format(st[0].stats.starttime),japan_format(st[0].stats.starttime+4500)
+    print 'get '+stat+' BHE',japan_format(st[0].stats.starttime),japan_format(st[0].stats.starttime+4500)
 
 main()
