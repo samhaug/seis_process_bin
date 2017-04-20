@@ -3,6 +3,8 @@
 import obspy
 import seispy
 import numpy as np
+from obspy.taup import TauPyModel
+model = TauPyModel(model='prem50')
 
 
 str = obspy.read('*0.R')
@@ -12,14 +14,27 @@ for idx,tr in enumerate(stz):
     stz[idx].stats.sac['o'] = -204
     str[idx].stats.sac['o'] = -204
 
-
 for idx,tr in enumerate(str):
-    p = seispy.data.phase_window(tr,phase=['S'],window=(-30,30))
-    stz[idx].data *= 1./np.abs(p.data).max()
+    p = seispy.data.phase_window(tr,phase=['S'],window=(-20,20))
+    stz[idx].data *= 1./np.max(np.abs(p.data))
+    str[idx].data *= 1./np.max(np.abs(p.data))
+    arrival = model.get_travel_times(source_depth_in_km=tr.stats.sac['evdp'],
+                                     distance_in_degree=tr.stats.sac['gcarc'],
+                                     phase_list=['S1800P'])
+    sxp = np.radians(arrival[0].takeoff_angle)
+    arrival = model.get_travel_times(source_depth_in_km=tr.stats.sac['evdp'],
+                                     distance_in_degree=tr.stats.sac['gcarc'],
+                                     phase_list=['S'])
+    s = np.radians(arrival[0].takeoff_angle)
+    rat = np.sin(2*sxp)/np.sin(2*s)
+    #print max(rat,1./rat)
+    #stz[idx].data *= max(rat,1./rat)
+    stz[idx].data *= 1./rat
+
 #stz = seispy.data.normalize_on_phase(stz,phase=['S'])
 #str = seispy.data.normalize_on_phase(str,phase=['S'])
 #st = seispy.filter.gimp_filter(st)
 
-stz.write('stz.pk',format='PICKLE')
+stz.write('stv.pk',format='PICKLE')
 str.write('str.pk',format='PICKLE')
 
