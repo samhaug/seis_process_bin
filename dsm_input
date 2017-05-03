@@ -1,0 +1,119 @@
+#!/home/samhaug/anaconda2/bin/python
+
+'''
+==============================================================================
+
+File Name : dsm_input
+Purpose : make input file for DSM run
+Creation Date : 03-05-2017
+Last Modified : Wed 03 May 2017 12:15:41 PM EDT
+Created By : Samuel M. Haugland
+
+==============================================================================
+'''
+
+import numpy as np
+from matplotlib import pyplot as plt
+from subprocess import call
+from os import listdir
+import h5py
+import obspy
+
+def main():
+    rad,evla,evlo,mrr,mtt,mpp,mrt,mrp,mtp = read_CMT('CMTSOLUTION')
+    coord = read_stations(obspy.read('stt.pk'))
+
+    infile_psv = open('input.prem.psv','w')
+    infile_sh = open('input.prem.sh','w')
+    premfile_psv = '/home/samhaug/seis_process_bin/prem_psv'
+    premfile_sh = '/home/samhaug/seis_process_bin/prem_sh'
+
+    # Length of seismogram in seconds
+    T = 1500
+    # np
+    n = 1500
+    # relative error (See GT95 eq. 6.2)
+    re = '1.d-2'
+    # ampratio using in grid cut-off (1.d-10 is recommended)
+    ratc = '1.d-10'
+    # ampratio using in l-cutoff
+    ratl = '1.d-5'
+    # wrap-around attenuation for omegai
+    wrap = '1.d-2'
+    #freq = T/imax
+    imin,imax = 0,1500
+
+    write_header(infile_psv,T,n,re,ratc,ratl,wrap,imin,imax)
+    write_model(infile_psv,premfile_psv)
+    write_source(infile_psv,rad,evla,evlo,mrr,mtt,mpp,mrt,mrp,mtp)
+    write_stations(infile_psv,coord)
+    write_footer(infile_psv,'./PASpsv.spc')
+
+    write_header(infile_sh,T,n,re,ratc,ratl,wrap,imin,imax)
+    write_model(infile_sh,premfile_sh)
+    write_source(infile_sh,rad,evla,evlo,mrr,mtt,mpp,mrt,mrp,mtp)
+    write_stations(infile_sh,coord)
+    write_footer(infile_sh,'./PASsh.spc')
+
+def write_header(infile,T,n,re,ratc,ratl,wrap,imin,imax):
+    infile.write('c\n')
+    infile.write('c parameter for the periodic range\n')
+    infile.write('   {}   {}   tlen(s),np\n'.format(T,n))
+    infile.write('c relative error (See GT95 eq. 6.2)\n')
+    infile.write('   {} re\n'.format(re))
+    infile.write('c ampratio using in grid cut-off (1.d-10 is recommended)\n')
+    infile.write('   {}  ratc\n'.format(ratc))
+    infile.write('c ampratio using in l-cutoff\n')
+    infile.write('   {}   ratl\n'.format(ratl))
+    infile.write('c wrap-around attenuation for omegai\n')
+    infile.write('   {}\n'.format(wrap))
+    infile.write('c parameter for the trial function\n')
+    infile.write('c imin imax\n')
+    infile.write('   {}   {}\n'.format(imin,imax))
+
+def write_model(infile,premfile):
+    f = open(premfile).read().strip().split('\n')
+    for ii in f:
+        infile.write(ii+'\n')
+    infile.write('c\n')
+
+def write_source(infile,rad,evla,evlo,mrr,mtt,mpp,mrt,mrp,mtp):
+    infile.write('c parameter for the source\n')
+    infile.write('   {}   {}   {}\n'.format(round(rad,1),round(evla,2),round(evlo,2)))
+    infile.write('    {}  {}  {}  {}  {}  {}\n'.format(mrr,mrt,mrp,mtt,mtp,mpp))
+
+def write_stations(infile,coord):
+    infile.write('c parameter for the station \n')
+    infile.write('   {}   nr\n'.format(len(coord)))
+    for ii in coord:
+        infile.write('      {} {}\n'.format(round(ii[0],4),round(ii[1],4)))
+
+def write_footer(infile,mode):
+    infile.write('c output file\n')
+    infile.write(mode+'\n')
+    infile.write('c\n')
+    infile.write('end')
+
+def read_CMT(cmtfile):
+    f = open(cmtfile)
+    a = f.read().strip().split('\n')
+    rad = 6371.-float(a[6].split()[-1])
+    lat = float(a[4].split()[-1])
+    lon = float(a[5].split()[-1])
+    mrr = round(float(a[7].split()[-1])/1e25,3)
+    mtt = round(float(a[8].split()[-1])/1e25,3)
+    mpp = round(float(a[9].split()[-1])/1e25,3)
+    mrt = round(float(a[10].split()[-1])/1e25,3)
+    mrp = round(float(a[11].split()[-1])/1e25,3)
+    mtp = round(float(a[12].split()[-1])/1e25,3)
+    return rad,lat,lon,mrr,mtt,mpp,mrt,mrp,mtp
+
+def read_stations(st):
+    coord = []
+    for tr in st:
+        coord.append([tr.stats.sac['stla'],tr.stats.sac['stlo']])
+    return coord
+
+main()
+
+

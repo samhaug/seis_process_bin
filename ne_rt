@@ -1,0 +1,33 @@
+#!/home/samhaug/anaconda2/bin/python
+
+'''
+==============================================================================
+
+File Name : ne_rt.py
+Purpose : rotate ne_rt for synthetic
+Creation Date : 02-05-2017
+Last Modified : Tue 02 May 2017 01:12:31 PM EDT
+Created By : Samuel M. Haugland
+
+==============================================================================
+'''
+
+import numpy as np
+from matplotlib import pyplot as plt
+from subprocess import call
+from os import listdir
+import h5py
+import obspy
+import seispy
+
+def main():
+    stn = obspy.read('st_N.pk')
+    ste = obspy.read('st_E.pk')
+    stn.sort(['station'])
+    ste.sort(['station'])
+
+    r,t = seispy.rotate.rotate_ne_rt(stn,ste)
+    r.write('st_R.pk',format='PICKLE')
+    t.write('st_T.pk',format='PICKLE')
+
+main()
