@@ -27,13 +27,7 @@ for idx,tr in enumerate(str):
                                      phase_list=['S'])
     s = np.radians(arrival[0].takeoff_angle)
     rat = np.sin(2*sxp)/np.sin(2*s)
-    #print max(rat,1./rat)
-    #stz[idx].data *= max(rat,1./rat)
     stz[idx].data *= 1./rat
-
-#stz = seispy.data.normalize_on_phase(stz,phase=['S'])
-#str = seispy.data.normalize_on_phase(str,phase=['S'])
-#st = seispy.filter.gimp_filter(st)
 
 stz.write('stv.pk',format='PICKLE')
 str.write('str.pk',format='PICKLE')

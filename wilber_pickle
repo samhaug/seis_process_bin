@@ -1,0 +1,74 @@
+#!/home/samhaug/anaconda2/bin/python
+
+'''
+==============================================================================
+
+File Name : wilber_pickle.py
+Purpose : pickle files downloaded from wilber
+Creation Date : 30-08-2017
+Last Modified : Wed 30 Aug 2017 11:33:06 AM EDT
+Created By : Samuel M. Haugland
+
+==============================================================================
+'''
+
+import numpy as np
+from matplotlib import pyplot as plt
+from subprocess import call
+from os import listdir
+import h5py
+import obspy
+import seispy
+
+def main():
+    stz = obspy.read('*BHZ*filtered')
+    ste = obspy.read('*BHE*filtered')
+    stn = obspy.read('*BHN*filtered')
+    stz,stn,ste = station_list_filter(stz,stn,ste)
+    stz.sort(['station'])
+    ste.sort(['station'])
+    stn.sort(['station'])
+    stz.interpolate(10)
+    ste.interpolate(10)
+    stn.interpolate(10)
+    a = []
+    for tr in stz:
+        a.append(tr.stats.npts)
+    trlen = int(np.mean(a))
+    for idx,tr in enumerate(stz):
+        stz[idx].data = stz[idx].data[0:trlen]
+        ste[idx].data = ste[idx].data[0:trlen]
+        stn[idx].data = stn[idx].data[0:trlen]
+    stz.write('st_Z.pk',format='PICKLE')
+    stn.write('st_N.pk',format='PICKLE')
+    ste.write('st_E.pk',format='PICKLE')
+
+def station_list_filter(stz,stn,ste):
+    stat_list_z = []
+    stat_list_e = []
+    stat_list_n = []
+    for tr in stz:
+        if tr.stats.station+tr.stats.network in stat_list_z:
+            stz.remove(tr)
+        stat_list_z.append(tr.stats.station+tr.stats.network)
+    for tr in stn:
+        if tr.stats.station+tr.stats.network in stat_list_n:
+            stn.remove(tr)
+        stat_list_n.append(tr.stats.station+tr.stats.network)
+    for tr in ste:
+        if tr.stats.station+tr.stats.network in stat_list_e:
+            ste.remove(tr)
+        stat_list_e.append(tr.stats.station+tr.stats.network)
+    I = list(set(stat_list_e).intersection(set(stat_list_n)).intersection(set(stat_list_z)))
+    for tr in stz:
+        if tr.stats.station+tr.stats.network not in I:
+            stz.remove(tr)
+    for tr in stn:
+        if tr.stats.station+tr.stats.network not in I:
+            stn.remove(tr)
+    for tr in ste:
+        if tr.stats.station+tr.stats.network not in I:
+            ste.remove(tr)
+    return stz,stn,ste
+
+main()

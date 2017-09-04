@@ -27,7 +27,7 @@ for index in resp_list:
          read {}
          rtr
          taper
-         trans from polezero S %pzfile to none freq 0.020 0.045 20 40
+         trans from polezero S %pzfile to none freq 0.0050 0.010 20 40
          mul 1.0e9
          write {}.filtered
          '''.format(index[1],index[0],index[0])

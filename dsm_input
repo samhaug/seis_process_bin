@@ -80,13 +80,13 @@ def write_model(infile,premfile):
 def write_source(infile,rad,evla,evlo,mrr,mtt,mpp,mrt,mrp,mtp):
     infile.write('c parameter for the source\n')
     infile.write('   {}   {}   {}\n'.format(round(rad,1),round(evla,2),round(evlo,2)))
-    infile.write('    {}  {}  {}  {}  {}  {}\n'.format(mrr,mrt,mrp,mtt,mtp,mpp))
+    infile.write('    {:.3f}  {:.3f}  {:.3f}  {:.3f}  {:.3f}  {:.3f}\n'.format(mrr,mrt,mrp,mtt,mtp,mpp))
 
 def write_stations(infile,coord):
     infile.write('c parameter for the station \n')
     infile.write('   {}   nr\n'.format(len(coord)))
     for ii in coord:
-        infile.write('      {} {}\n'.format(round(ii[0],4),round(ii[1],4)))
+        infile.write('      {:.4f} {:.4f}\n'.format(ii[0],ii[1]))
 
 def write_footer(infile,mode):
     infile.write('c output file\n')
