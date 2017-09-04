@@ -39,6 +39,15 @@ def main():
         stz[idx].data = stz[idx].data[0:trlen]
         ste[idx].data = ste[idx].data[0:trlen]
         stn[idx].data = stn[idx].data[0:trlen]
+    for idx,tr in enumerate(stz):
+        if tr.stats.npts != trlen:
+            stz.remove(tr)
+    for idx,tr in enumerate(ste):
+        if tr.stats.npts != trlen:
+            ste.remove(tr)
+    for idx,tr in enumerate(stn):
+        if tr.stats.npts != trlen:
+            stn.remove(tr)
     stz.write('st_Z.pk',format='PICKLE')
     stn.write('st_N.pk',format='PICKLE')
     ste.write('st_E.pk',format='PICKLE')
