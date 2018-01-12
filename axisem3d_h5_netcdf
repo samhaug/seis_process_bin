@@ -1,0 +1,153 @@
+#!/home/samhaug/anaconda2/bin/python
+
+'''
+==============================================================================
+
+File Name : axisem3d_h5
+Purpose : save axisem3d output as h5 files. For ascii converted from netcdf
+Creation Date : 11-01-2018
+Last Modified : Thu 11 Jan 2018 06:35:05 PM EST
+Created By : Samuel M. Haugland
+
+==============================================================================
+'''
+
+import numpy as np
+from os import listdir
+import obspy
+
+
+def find_length():
+    for idx,ii in enumerate(open('inparam.time_src_recv').readlines()):
+        if ii.startswith('TIME_RECORD'):
+            return float(ii.strip().split()[-1])
+
+def make_traces():
+    st_r = obspy.core.Stream()
+    st_t = obspy.core.Stream()
+    st_z = obspy.core.Stream()
+
+    stat_files = listdir('ascii')
+    stat_list = open('STATIONS').readlines()
+
+    for ii in stat_list:
+        tr_r = obspy.core.Trace()
+        tr_r.stats.channel = 'BHR'
+        tr_t = obspy.core.Trace()
+        tr_t.stats.channel = 'BHT'
+        tr_z = obspy.core.Trace()
+        tr_z.stats.channel = 'BHZ'
+
+        name = ii.strip().split()
+        network = name[1]
+        station = name[0].split('_')[0]
+        location = name[0].split('_')[1]
+
+        tr_r.stats.network = network
+        tr_r.stats.station = station
+        tr_r.stats.location = location
+
+        tr_t.stats.network = network
+        tr_t.stats.station = station
+        tr_t.stats.location = location
+
+        tr_z.stats.network = network
+        tr_z.stats.station = station
+        tr_z.stats.location = location
+
+        lat = float(name[2])
+        lon = float(name[3])
+
+        tr_r.stats.stla = lat
+        tr_r.stats.stlo = lon
+        tr_t.stats.stla = lat
+        tr_t.stats.stlo = lon
+        tr_z.stats.stla = lat
+        tr_z.stats.stlo = lon
+
+        #fname = '{}.{}.RTZ.ascii'.format(name[1],name[0])
+        #data = np.genfromtxt('stations/'+fname)
+        r = np.genfromtxt('ascii/{}.{}..BHR.ascii'.format(name[1],name[0]))
+        t = np.genfromtxt('ascii/{}.{}..BHT.ascii'.format(name[1],name[0]))
+        z = np.genfromtxt('ascii/{}.{}..BHZ.ascii'.format(name[1],name[0]))
+
+        #r = data[:,1]
+        #t = data[:,2]
+        #z = data[:,3]
+        t = np.linspace(0,find_length(),num=len(r))
+
+        tr_r.data = r
+        tr_t.data = t
+        tr_z.data = z
+
+        tr_r.stats.sampling_rate = len(r)/t.max()
+        tr_t.stats.sampling_rate = len(t)/t.max()
+        tr_z.stats.sampling_rate = len(z)/t.max()
+
+        tr_r.stats.o = 0
+        tr_t.stats.o = 0
+        tr_z.stats.o = 0
+
+
+        st_r.append(tr_r)
+        st_t.append(tr_t)
+        st_z.append(tr_z)
+    return st_r,st_t,st_z
+
+def get_source_metadata(st_r,st_t,st_z):
+    CMT = open('CMTSOLUTION').readlines()
+    evdp = float(CMT[6].strip().split()[1])
+    top = [int(ii) for ii in CMT[0].strip().split()[1:6]]
+    sec = float(CMT[0].strip().split()[6])
+    starttime = obspy.core.UTCDateTime(top[0],top[1],top[2],
+                           top[3],top[4],sec)
+    evla = float(CMT[4].strip().split()[-1])
+    evlo = float(CMT[5].strip().split()[-1])
+
+    for idx,tr in enumerate(st_r):
+        st_r[idx].stats.starttime = starttime
+        st_r[idx].stats.evla = evla
+        st_r[idx].stats.evlo = evlo
+        st_r[idx].stats.evdp = evdp
+        st_t[idx].stats.starttime = starttime
+        st_t[idx].stats.evla = evla
+        st_t[idx].stats.evlo = evlo
+        st_t[idx].stats.evdp = evdp
+        st_z[idx].stats.starttime = starttime
+        st_z[idx].stats.evla = evla
+        st_z[idx].stats.evlo = evlo
+        st_z[idx].stats.evdp = evdp
+
+    return st_r,st_t,st_z
+
+def gcarc(st):
+    f = 0.0033528106647474805
+    for tr in st:
+	a = obspy.geodetics.gps2dist_azimuth(tr.stats.evla,
+                                             tr.stats.evlo,
+                                             tr.stats.stla,
+                                             tr.stats.stlo,f=f)
+	tr.stats.baz = a[-1]
+	tr.stats.az = a[-2]
+	tr.stats.gcarc = a[0]/111195.
+    return st
+
+print('Make traces')
+st_r,st_t,st_z = make_traces()
+print('Source metadata')
+st_r,st_t,st_z = get_source_metadata(st_r,st_t,st_z)
+print('gcarc')
+st_r = gcarc(st_r)
+st_t = gcarc(st_t)
+st_z = gcarc(st_z)
+
+
+print('Writing')
+st_r.write('st_R.h5',format='H5')
+st_t.write('st_T.h5',format='H5')
+st_z.write('st_Z.h5',format='H5')
+
+
+
+
+
