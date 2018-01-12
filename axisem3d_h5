@@ -88,9 +88,9 @@ def make_traces():
 
 def get_source_metadata(st_r,st_t,st_z):
     CMT = open('CMTSOLUTION').readlines()
+    evdp = float(CMT[6].strip().split()[1])
     top = [int(ii) for ii in CMT[0].strip().split()[1:6]]
     sec = float(CMT[0].strip().split()[6])
-    print sec
     starttime = obspy.core.UTCDateTime(top[0],top[1],top[2],
                            top[3],top[4],sec)
     evla = float(CMT[4].strip().split()[-1])
@@ -100,21 +100,39 @@ def get_source_metadata(st_r,st_t,st_z):
         st_r[idx].stats.starttime = starttime
         st_r[idx].stats.evla = evla
         st_r[idx].stats.evlo = evlo
+        st_r[idx].stats.evdp = evdp
         st_t[idx].stats.starttime = starttime
         st_t[idx].stats.evla = evla
         st_t[idx].stats.evlo = evlo
+        st_t[idx].stats.evdp = evdp
         st_z[idx].stats.starttime = starttime
         st_z[idx].stats.evla = evla
         st_z[idx].stats.evlo = evlo
+        st_z[idx].stats.evdp = evdp
 
     return st_r,st_t,st_z
 
+def gcarc(st):
+    f = 0.0033528106647474805
+    for tr in st:
+	a = obspy.geodetics.gps2dist_azimuth(tr.stats.evla,
+                                             tr.stats.evlo,
+                                             tr.stats.stla,
+                                             tr.stats.stlo,f=f)
+	tr.stats.baz = a[-1]
+	tr.stats.az = a[-2]
+	tr.stats.gcarc = a[0]/111195.
+    return st
 
 print('Make traces')
 st_r,st_t,st_z = make_traces()
 print('Source metadata')
 st_r,st_t,st_z = get_source_metadata(st_r,st_t,st_z)
-print len(st_r)
+print('gcarc')
+st_r = gcarc(st_r)
+st_t = gcarc(st_t)
+st_z = gcarc(st_z)
+
 
 print('Writing')
 st_r.write('st_R.h5',format='H5')
