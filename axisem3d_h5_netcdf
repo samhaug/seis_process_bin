@@ -65,24 +65,19 @@ def make_traces():
         tr_z.stats.stla = lat
         tr_z.stats.stlo = lon
 
-        #fname = '{}.{}.RTZ.ascii'.format(name[1],name[0])
-        #data = np.genfromtxt('stations/'+fname)
         r = np.genfromtxt('ascii/{}.{}..BHR.ascii'.format(name[1],name[0]))
         t = np.genfromtxt('ascii/{}.{}..BHT.ascii'.format(name[1],name[0]))
         z = np.genfromtxt('ascii/{}.{}..BHZ.ascii'.format(name[1],name[0]))
 
-        #r = data[:,1]
-        #t = data[:,2]
-        #z = data[:,3]
-        t = np.linspace(0,find_length(),num=len(r))
+        time = np.linspace(0,find_length(),num=len(r))
 
         tr_r.data = r
         tr_t.data = t
         tr_z.data = z
 
-        tr_r.stats.sampling_rate = len(r)/t.max()
-        tr_t.stats.sampling_rate = len(t)/t.max()
-        tr_z.stats.sampling_rate = len(z)/t.max()
+        tr_r.stats.sampling_rate = len(r)/time.max()
+        tr_t.stats.sampling_rate = len(t)/time.max()
+        tr_z.stats.sampling_rate = len(z)/time.max()
 
         tr_r.stats.o = 0
         tr_t.stats.o = 0
@@ -92,6 +87,7 @@ def make_traces():
         st_r.append(tr_r)
         st_t.append(tr_t)
         st_z.append(tr_z)
+
     return st_r,st_t,st_z
 
 def get_source_metadata(st_r,st_t,st_z):
