@@ -17,12 +17,13 @@ def main():
         ste[idx].stats.evlo = ref_st[0].stats.evlo
         stz[idx].stats.evla = ref_st[0].stats.evla
         stz[idx].stats.evlo = ref_st[0].stats.evlo
-        stn[idx].stats.stla = ref_st[0].stats.stla
-        stn[idx].stats.stlo = ref_st[0].stats.stlo
-        ste[idx].stats.stla = ref_st[0].stats.stla
-        ste[idx].stats.stlo = ref_st[0].stats.stlo
-        stz[idx].stats.stla = ref_st[0].stats.stla
-        stz[idx].stats.stlo = ref_st[0].stats.stlo
+
+        stn[idx].stats.stla = stn[idx].stats.sac['stla']
+        stn[idx].stats.stlo = stn[idx].stats.sac['stlo']
+        ste[idx].stats.stla = ste[idx].stats.sac['stla']
+        ste[idx].stats.stlo = ste[idx].stats.sac['stlo']
+        stz[idx].stats.stla = stz[idx].stats.sac['stla']
+        stz[idx].stats.stlo = stz[idx].stats.sac['stlo']
         stz[idx].stats.o = 0
         ste[idx].stats.o = 0
         stn[idx].stats.o = 0
