@@ -19,7 +19,7 @@ def main():
                  'TGW','TKA','TKD','TKO','TMC','TMR','TNK','TNR','TSA','TSK',
                  'TTO','TYM','TYS','UMJ','URH','WJM','WTR','YAS','YMZ','YNG',
                  'YNG','YSI','YTY','YZK','ZMM']
-    o = st[0].stats.sac['o']
+    o = st[0].stats.o
     st[0].stats.starttime += o
     for ii in stat_list[0:40]:
         print_line(st,ii)
