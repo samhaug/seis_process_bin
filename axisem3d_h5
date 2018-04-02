@@ -89,7 +89,7 @@ def make_traces():
 def get_source_metadata(st_r,st_t,st_z):
     CMT = open('CMTSOLUTION').readlines()
     evdp = float(CMT[6].strip().split()[1])
-    top = [int(ii) for ii in CMT[0].strip().split()[1:6]]
+    top = [int(float(ii)) for ii in CMT[0].strip().split()[1:6]]
     sec = float(CMT[0].strip().split()[6])
     starttime = obspy.core.UTCDateTime(top[0],top[1],top[2],
                            top[3],top[4],sec)

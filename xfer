@@ -1,0 +1,3 @@
+#!/bin/bash
+
+scp -r samhaug@flux-xfer.arc-ts.umich.edu:$1 .
