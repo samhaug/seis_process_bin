@@ -9,11 +9,15 @@ import subprocess
 #Samuel Haugland 1/11/16
 
 resp_list = []
+count = 0
 
 for filename in glob.glob('*.SAC'):
     a = filename.split('.')
-    pz_file = glob.glob('SACPZ.'+a[0]+'.'+a[1]+'*'+a[3])[0]
-    resp_list.append((filename,pz_file))
+    try:
+        pz_file = glob.glob('SACPZ.'+a[0]+'.'+a[1]+'*'+a[3])[0]
+        resp_list.append((filename,pz_file))
+    except IndexError:
+        count += 1
 
 p = subprocess.Popen(['sac'],
                      stdout = subprocess.PIPE,
@@ -34,3 +38,5 @@ for index in resp_list:
 s += "quit\n"
 out = p.communicate(s)
 print out[0]
+
+print 'Mismatch: ',count
